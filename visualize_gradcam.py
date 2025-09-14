@@ -21,9 +21,19 @@ from predict import load_model
 class GradCAM:
     """Generate Grad-CAM heatmaps for age prediction model"""
 
-    def __init__(self, model, target_layer_name='backbone.layer4'):
+    def __init__(self, model, target_layer_name=None):
         self.model = model
         self.model.eval()
+
+        # Auto-detect target layer if not specified
+        if target_layer_name is None:
+            # Check if model has backbone wrapper
+            has_backbone = any('backbone' in name for name, _ in self.model.named_modules())
+
+            if has_backbone:
+                target_layer_name = 'backbone.layer4'
+            else:
+                target_layer_name = 'layer4'
 
         # Find the target layer
         self.target_layer = None
@@ -33,7 +43,16 @@ class GradCAM:
                 break
 
         if self.target_layer is None:
-            raise ValueError(f"Target layer {target_layer_name} not found")
+            # Try to find the last conv layer
+            print(f"Warning: Target layer {target_layer_name} not found, using last conv layer")
+            for name, module in self.model.named_modules():
+                if 'layer4' in name and len(list(module.children())) > 0:
+                    self.target_layer = module
+                    print(f"Using layer: {name}")
+                    break
+
+        if self.target_layer is None:
+            raise ValueError(f"Could not find suitable target layer")
 
         # Storage for gradients and activations
         self.gradients = None
@@ -184,7 +203,8 @@ def visualize_age_prediction(image_path, model_path='best_model.pth', save_path=
     # Auto-generate save path if not provided
     if save_path is None:
         image_name = Path(image_path).stem
-        save_path = f"gradcam_{image_name}.png"
+        model_name = Path(model_path).stem
+        save_path = f"gradcam_{image_name}_{model_name}.png"
 
     # Always save to disk
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
@@ -223,29 +243,31 @@ def batch_visualize_hands(hand_dir="Hands", model_path='best_model.pth', output_
 def main():
     if len(sys.argv) < 2:
         print("Usage:")
-        print("  python visualize_gradcam.py <image_path>                    # Single image")
-        print("  python visualize_gradcam.py --batch                        # Sample from training data")
-        print("  python visualize_gradcam.py --batch --model balanced_model.pth  # Use specific model")
+        print("  python visualize_gradcam.py <image_path> [model.pth]       # Single image")
+        print("  python visualize_gradcam.py --batch [model.pth]            # Sample from training data")
+        print("  Default model: best_model.pth")
         sys.exit(1)
 
     if sys.argv[1] == '--batch':
         # Batch mode
         model_path = 'best_model.pth'
-        if len(sys.argv) > 2 and sys.argv[2] == '--model':
-            model_path = sys.argv[3]
+        if len(sys.argv) > 2 and sys.argv[2].endswith('.pth'):
+            model_path = sys.argv[2]
 
         batch_visualize_hands(model_path=model_path)
 
     else:
         # Single image mode
         image_path = sys.argv[1]
-        model_path = 'best_model.pth' if len(sys.argv) <= 2 else sys.argv[2]
+        model_path = 'best_model.pth'
+        if len(sys.argv) > 2 and sys.argv[2].endswith('.pth'):
+            model_path = sys.argv[2]
 
         if not Path(image_path).exists():
             print(f"Image not found: {image_path}")
             sys.exit(1)
 
-        print(f"Generating Grad-CAM for {image_path}...")
+        print(f"Generating Grad-CAM for {image_path} using {model_path}...")
         visualize_age_prediction(image_path, model_path)
 
 if __name__ == "__main__":

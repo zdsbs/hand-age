@@ -29,14 +29,53 @@ def load_model(checkpoint_path='best_model.pth', device=None):
     print(f"Loading model on device: {device}")
     checkpoint = torch.load(checkpoint_path, map_location=device)
 
-    model = AgeRegressionModel(backbone='resnet50')
-    model.load_state_dict(checkpoint['model_state_dict'])
+    # Handle different checkpoint formats
+    if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+        # Standard format from training
+        model = AgeRegressionModel(backbone='resnet50')
+        model.load_state_dict(checkpoint['model_state_dict'])
+        config = checkpoint.get('config', {})
+    else:
+        # Check if it's a raw ResNet18 model
+        state_dict = checkpoint if not isinstance(checkpoint, dict) else checkpoint
+
+        # Detect if it's ResNet18 (has layer4.1 but not layer4.2)
+        is_resnet18 = any('layer4.1' in k for k in state_dict.keys()) and \
+                      not any('layer4.2' in k for k in state_dict.keys())
+
+        if is_resnet18:
+            # Load as raw ResNet18 for age regression
+            from torchvision import models
+            model = models.resnet18(weights=None)
+
+            # Check FC layer output size
+            fc_keys = [k for k in state_dict.keys() if k.startswith('fc.')]
+            if fc_keys:
+                fc_out = state_dict['fc.weight'].shape[0] if 'fc.weight' in state_dict else 1
+            else:
+                fc_out = 1
+
+            # Replace FC layer to match saved model
+            if fc_out == 1:
+                model.fc = torch.nn.Linear(model.fc.in_features, 1)
+
+            model.load_state_dict(state_dict)
+            config = {'img_size': 224, 'device': device}
+        else:
+            # Try loading as ResNet50 model
+            model = AgeRegressionModel(backbone='resnet50')
+            model.load_state_dict(state_dict)
+            config = {}
+
     model = model.to(device)
     model.eval()
 
-    # Update config with correct device
-    config = checkpoint['config'].copy()
-    config['device'] = device
+    # Update config with device
+    if not config:
+        config = {'img_size': 224, 'device': device}
+    else:
+        config = config.copy()
+        config['device'] = device
 
     return model, config
 
@@ -127,14 +166,25 @@ def main():
     # Parse arguments
     if len(sys.argv) < 2:
         print("Usage:")
-        print("  python predict.py <image_path>           # Predict single image")
-        print("  python predict.py --test                 # Evaluate test set")
-        print("  python predict.py --verification         # Check verification samples")
+        print("  python predict.py <image_path> [model.pth]         # Predict single image")
+        print("  python predict.py --test [model.pth]               # Evaluate test set")
+        print("  python predict.py --verification [model.pth]       # Check verification samples")
+        print("  Default model: best_model.pth")
         sys.exit(1)
 
+    # Determine model path
+    model_path = 'best_model.pth'
+
+    # Check for custom model path in different argument positions
+    if len(sys.argv) >= 3:
+        if sys.argv[1] in ['--test', '--verification']:
+            model_path = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2].endswith('.pth') else model_path
+        else:
+            model_path = sys.argv[2] if sys.argv[2].endswith('.pth') else model_path
+
     # Load model (device auto-detected)
-    print("Loading model...")
-    model, config = load_model('best_model.pth')
+    print(f"Loading model from {model_path}...")
+    model, config = load_model(model_path)
 
     if sys.argv[1] == '--test':
         # Evaluate full test set
