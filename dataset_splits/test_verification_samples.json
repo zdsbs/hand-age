@@ -1,0 +1,162 @@
+[
+  {
+    "person_id": "1540",
+    "image": "Hand_0002635.jpg",
+    "age": 21,
+    "aspect": "dorsal right",
+    "gender": "male",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "1556",
+    "image": "Hand_0006651.jpg",
+    "age": 22,
+    "aspect": "dorsal right",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "1552",
+    "image": "Hand_0010105.jpg",
+    "age": 23,
+    "aspect": "dorsal right",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "1008",
+    "image": "Hand_0001265.jpg",
+    "age": 20,
+    "aspect": "dorsal left",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "570",
+    "image": "Hand_0000780.jpg",
+    "age": 21,
+    "aspect": "dorsal right",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "525",
+    "image": "Hand_0002134.jpg",
+    "age": 20,
+    "aspect": "dorsal right",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "1037",
+    "image": "Hand_0006166.jpg",
+    "age": 21,
+    "aspect": "dorsal right",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "1037",
+    "image": "Hand_0006169.jpg",
+    "age": 21,
+    "aspect": "dorsal right",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "3000000",
+    "image": "Hand_0009530.jpg",
+    "age": 19,
+    "aspect": "dorsal left",
+    "gender": "female",
+    "skinColor": "very fair"
+  },
+  {
+    "person_id": "1020",
+    "image": "Hand_0002398.jpg",
+    "age": 20,
+    "aspect": "dorsal left",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "55",
+    "image": "Hand_0005342.jpg",
+    "age": 20,
+    "aspect": "dorsal left",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "8",
+    "image": "Hand_0000251.jpg",
+    "age": 21,
+    "aspect": "dorsal left",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "1037",
+    "image": "Hand_0006231.jpg",
+    "age": 21,
+    "aspect": "dorsal left",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "67",
+    "image": "Hand_0001875.jpg",
+    "age": 22,
+    "aspect": "dorsal right",
+    "gender": "male",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "570",
+    "image": "Hand_0000775.jpg",
+    "age": 21,
+    "aspect": "dorsal right",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "1019",
+    "image": "Hand_0003185.jpg",
+    "age": 21,
+    "aspect": "dorsal left",
+    "gender": "female",
+    "skinColor": "very fair"
+  },
+  {
+    "person_id": "1559",
+    "image": "Hand_0006313.jpg",
+    "age": 20,
+    "aspect": "dorsal left",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "1020",
+    "image": "Hand_0002312.jpg",
+    "age": 20,
+    "aspect": "dorsal right",
+    "gender": "female",
+    "skinColor": "medium"
+  },
+  {
+    "person_id": "27",
+    "image": "Hand_0000996.jpg",
+    "age": 23,
+    "aspect": "dorsal right",
+    "gender": "male",
+    "skinColor": "fair"
+  },
+  {
+    "person_id": "1011",
+    "image": "Hand_0011154.jpg",
+    "age": 22,
+    "aspect": "dorsal left",
+    "gender": "male",
+    "skinColor": "fair"
+  }
+]

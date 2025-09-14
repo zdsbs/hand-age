@@ -20,7 +20,7 @@ def load_hand_data(csv_path="HandInfo.csv"):
 
     return users
 
-def create_finetune_examples(users, selected_ids, base_url="https://uhhhhhh"):
+def create_finetune_examples(users, selected_ids, base_url="https://raw.githubusercontent.com/zdsbs/hand-age/main/Hands"):
     """Create fine-tuning examples in OpenAI format"""
     examples = []
     used_images = []  # Track which images we're using
@@ -33,8 +33,8 @@ def create_finetune_examples(users, selected_ids, base_url="https://uhhhhhh"):
         user_data = users[user_id]
         age = user_data[0]['age']  # Age is consistent for all images of same person
 
-        # Sample up to 5 images per user for variety
-        sampled_images = random.sample(user_data, min(5, len(user_data)))
+        # Cap at 20 images per user to keep dataset manageable
+        sampled_images = random.sample(user_data, min(20, len(user_data)))
 
         for image_data in sampled_images:
             used_images.append(image_data['image'])  # Track this image
@@ -146,20 +146,49 @@ def main():
         print(json.dumps(examples[0], indent=2))
 
     print("\n" + "="*60)
-    print("To create full dataset with 10 users, run:")
-    print("  python create_finetune_dataset.py --full")
+    print("To create larger datasets, run:")
+    print("  python create_finetune_dataset.py --full     (10 users, ~100 samples)")
+    print("  python create_finetune_dataset.py --max      (all users, maximum samples)")
 
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) > 1 and sys.argv[1] == "--full":
+    if len(sys.argv) > 1 and sys.argv[1] == "--max":
+        # Maximum dataset mode - use ALL users
+        users = load_hand_data()
+        all_user_ids = list(users.keys())
+
+        print(f"Creating maximum dataset with ALL {len(all_user_ids)} users")
+
+        examples, used_images = create_finetune_examples(users, all_user_ids)
+        save_dataset(examples, "finetune_max.jsonl")
+
+        # Save CSV subset for the specific images used
+        save_csv_subset(used_images, output_path="finetune_max_subset.csv")
+
+        print(f"\nDataset statistics:")
+        print(f"  Users: {len(all_user_ids)}")
+        print(f"  Total examples: {len(examples)}")
+
+        # Show age distribution
+        age_counts = defaultdict(int)
+        for ex in examples:
+            age = ex['messages'][3]['content']
+            age_counts[age] += 1
+
+        print("\nAge distribution in dataset:")
+        for age, count in sorted(age_counts.items(), key=lambda x: int(x[0])):
+            print(f"  Age {age}: {count} examples")
+
+    elif len(sys.argv) > 1 and sys.argv[1] == "--full":
         # Full dataset mode
         users = load_hand_data()
         all_user_ids = list(users.keys())
 
-        # Select 10 random users
-        selected_ids = random.sample(all_user_ids, min(10, len(all_user_ids)))
-        print(f"Creating full dataset with users: {selected_ids}")
+        # Select 10 users to get ~100 samples (using all their images)
+        num_users = min(10, len(all_user_ids))
+        selected_ids = random.sample(all_user_ids, num_users)
+        print(f"Creating full dataset with {num_users} users: {selected_ids[:5]}... (showing first 5)")
 
         examples, used_images = create_finetune_examples(users, selected_ids)
         save_dataset(examples, "finetune_full.jsonl")
