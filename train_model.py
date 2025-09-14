@@ -13,6 +13,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, models
+from torchvision.models import ResNet50_Weights
 from tqdm import tqdm
 import random
 import os
@@ -74,7 +75,8 @@ class AgeRegressionModel(nn.Module):
 
         # Load pre-trained backbone
         if backbone == 'resnet50':
-            self.backbone = models.resnet50(pretrained=pretrained)
+            weights = ResNet50_Weights.DEFAULT if pretrained else None
+            self.backbone = models.resnet50(weights=weights)
             num_features = self.backbone.fc.in_features
             # Replace classifier with regression head
             self.backbone.fc = nn.Sequential(
@@ -170,11 +172,19 @@ def main():
     set_seed(42)
 
     # Configuration
+    # Use Apple Silicon GPU if available
+    if torch.backends.mps.is_available():
+        device = 'mps'
+    elif torch.cuda.is_available():
+        device = 'cuda'
+    else:
+        device = 'cpu'
+
     config = {
-        'batch_size': 32,
-        'learning_rate': 1e-4,
+        'batch_size': 64,  # Good size for compromise dataset
+        'learning_rate': 1e-4,  # Standard learning rate
         'num_epochs': 50,
-        'device': 'cuda' if torch.cuda.is_available() else 'cpu',
+        'device': device,
         'backbone': 'resnet50',
         'img_size': 224,
         'patience': 10  # Early stopping patience
@@ -197,14 +207,14 @@ def main():
                            std=[0.229, 0.224, 0.225])
     ])
 
-    # Create datasets
+    # Create datasets - using compromise splits
     train_dataset = HandAgeDataset(
-        'dataset_splits/train.json',
+        'compromise_dataset_splits/train.json',
         transform=train_transform,
         augment=True
     )
     val_dataset = HandAgeDataset(
-        'dataset_splits/val.json',
+        'compromise_dataset_splits/val.json',
         transform=val_transform,
         augment=False
     )

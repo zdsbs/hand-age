@@ -15,8 +15,18 @@ import sys
 # Import model class from training script
 from train_model import AgeRegressionModel
 
-def load_model(checkpoint_path='best_model.pth', device='cpu'):
+def load_model(checkpoint_path='best_model.pth', device=None):
     """Load trained model from checkpoint"""
+    # Auto-detect device like in training
+    if device is None:
+        if torch.backends.mps.is_available():
+            device = 'mps'
+        elif torch.cuda.is_available():
+            device = 'cuda'
+        else:
+            device = 'cpu'
+
+    print(f"Loading model on device: {device}")
     checkpoint = torch.load(checkpoint_path, map_location=device)
 
     model = AgeRegressionModel(backbone='resnet50')
@@ -24,7 +34,11 @@ def load_model(checkpoint_path='best_model.pth', device='cpu'):
     model = model.to(device)
     model.eval()
 
-    return model, checkpoint['config']
+    # Update config with correct device
+    config = checkpoint['config'].copy()
+    config['device'] = device
+
+    return model, config
 
 def predict_single_image(model, image_path, config):
     """Predict age for a single image"""
@@ -118,14 +132,9 @@ def main():
         print("  python predict.py --verification         # Check verification samples")
         sys.exit(1)
 
-    # Device
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(f"Using device: {device}")
-
-    # Load model
+    # Load model (device auto-detected)
     print("Loading model...")
-    model, config = load_model('best_model.pth', device)
-    config['device'] = device
+    model, config = load_model('best_model.pth')
 
     if sys.argv[1] == '--test':
         # Evaluate full test set
