@@ -24,6 +24,12 @@ uv.lock
 finetune_*.jsonl
 finetune_*.csv
 
+# Model files
+*.pth
+best_model.pth
+training_history.json
+test_results.json
+
 # IDE
 .vscode/
 .idea/
